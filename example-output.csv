@@ -1,0 +1,5 @@
+Processor,Distribution,Desktop_Environment,Cores,Threads,L2_Cache,L3_Cache,TDP,Release_Year,Single,Multi,Score,Rank
+AMD Ryzen 9 7950X,Linux Mint 22.2,Cinnamon,16,32,16.0,64.0,170,2022,315.97,5351.95,47559.26,1
+Intel Core Ultra 7 265KF,Linux Mint 22.2,Cinnamon,20,20,36.0,30.0,250,2024,330.78,4627.46,30217.91,2
+Intel Core i5-1155G7,Linux Mint 22.2,Cinnamon,4,8,5.0,8.0,28,2021,204.56,620.49,4601.84,3
+AMD A4-4300M,Debian 13,None,2,2,2.0,0.0,35,2012,54.44,93.12,77.86,4
