@@ -1,4 +1,4 @@
-# cpu-ranker
+# v0.X 2025/12/28
 A Linux-first customizable Python script that ranks your processors based on single core score, multi core score, L3 cache, and TDP.
 
 WIP, still adjusting formula to my tastes.
