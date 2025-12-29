@@ -1,7 +1,9 @@
 # v0.X 2025/12/28
 A Linux-first customizable Python script that ranks your processors based on single core score, multi core score, L3 cache, and TDP.
 
-WIP, still adjusting formula to my tastes.
+WIP, still adjusting formula to my tastes. 
+
+As implied, this script is not meant to be a definitive ranking of processors, its merely a tool to compare processors according to a certain criteria. Scores should not be used to definitively say "x CPU is better than Y CPU" or "X CPU is 2x better than Y CPU", it is a subjective comparison that you can adjust to your liking.
 
 ## Requirements
 There are only two requirements: Python 3.6+ and pandas.
@@ -25,9 +27,9 @@ The required 5x2 .CSV layout is as follows:
 | Column 1 | Column 2 |
 | ------------- | ------------- |
 | Single core average | Multi core average |
-| L2 cache | L3 cache |
+| L2 cache (MB) | L3 cache (MB) |
 | Cores | Threads |
-| TDP | Year of release |
+| TDP (Watts) | Year of release |
 | Distribution | Desktop environment |
 
 L2 cache, year of release, distribution, and desktop environment are never used in the formula as provided, and are tracked for comparison purposes in the generated .CSV containing all final data. 
@@ -36,7 +38,7 @@ With your terminal set to whatever directory you have the script in, run it with
 
 `python3 rank.py`
 
-The script will search for all .CSV files (excluding any set to be ignored) in the "CPUs" folder in the same directory as the script, extract their data, run its calculations, and generate a .CSV file titled "output.csv" in a folder called "Out" in the same directory as the script that contains all supplied data for all CPUs alongside their score, ranking from first to last by score. Any .CSV files not matching the required format will be skipped. All scores will be rounded to two decimal places before being added to the final .CSV table.
+The script will search for all .CSV files (excluding any set to be ignored) in the "CPUs" folder in the same directory as the script, extract their data, run its calculations, and generate a .CSV file titled "output.csv" in a folder called "Out" in the same directory as the script that contains all supplied data for all CPUs alongside their score, ranked from first to last by score. Any .CSV files not matching the required format will be skipped. All scores will be rounded to two decimal places before being added to the final .CSV table for readability.
 
 ## Ratings
 This script is provided under the MIT license to allow you to freely use and customize the rating system to your liking. Currently, the formula is:
@@ -51,19 +53,21 @@ Cache bonus is calculated from:
 
 `((l3_cache / cores) ** cache_scaling) * l3_bonus`
 
+Note: while the L3 cache bonus is exponential, it alone is not enough to overpower general CPU performance as shipped. As such, a 7800X3D for example will not dominate rankings purely based off of L3 cache.
+
 Efficiency is calculated from two separate operations:
 
 `power_cost = ((tdp / cores) + (tdp / threads)) / 2`
 
 `efficiency = performance / (performance + power_cost * tdp_penalty)`
 
-Constants are defined as:
+Constants are adjustable and defined as:
 
 ```
 weight_single = 0.78 (defines the importance of single core performance)
 weight_multi = 0.22 (defines the importance of multi core performance)
 l3_bonus = 0.50 (adjusts the overall contribution of L3 cache for each CPU)
 cache_scaling = 2.5 (defines how aggressive the L3 cache bonus curve is)
-tdp_penalty = 200 (defines how harshly tdp affects a score)
-scalar = 70 (used to produce more readable scores)
+tdp_penalty = 200 (defines how harshly TDP affects a score)
+scalar = 70 (used to produce more readable scores only, and does not affect CPU rankings)
 ```
