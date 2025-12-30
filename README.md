@@ -1,5 +1,5 @@
-# v0.X 2025/12/28
-A Linux-first customizable Python script that ranks your processors based on single core score, multi core score, L3 cache, and TDP.
+# v0.X 2025/12/29
+A Linux-first customizable Python script that ranks your processors based on single core score, multi core score, L2 cache, L3 cache, and TDP.
 
 WIP, still adjusting formula to my tastes. 
 
@@ -21,43 +21,47 @@ or if you're like me (using some form of Debian and just want pandas installed):
 `sudo apt install python3-pandas`
 
 ## Using the script
-This script reads .CSV data from a "CPUs" folder located in the same directory as wherever you place rank.py. Each .CSV file should be named "CPU Name.csv", the script will use the filename as the name for each processor.
+This script reads .csv data from a "CPUs" folder located in the same directory as wherever you place rank.py. Each .csv file should be named "CPU Name.csv", the script will use the filename as the name for each processor.
 
-The required 5x2 .CSV layout is as follows:
+The required 5x2 .csv layout is as follows:
 | Column 1 | Column 2 |
 | ------------- | ------------- |
 | Single core average | Multi core average |
 | L2 cache (MB) | L3 cache (MB) |
 | Cores | Threads |
-| TDP (Watts) | Year of release |
+| Max Power (Watts) | Year of release |
 | Distribution | Desktop environment |
 
-L2 cache, year of release, distribution, and desktop environment are never used in the formula as provided, and are tracked for comparison purposes in the generated .CSV containing all final data. 
+Max Power is defined as an Intel processor's Maximum Turbo Power, the PPT value of an AMD processor as tested, or if neither are available the TDP of the processor as provided by the manufacturer. Year of release, distribution, and desktop environment are never used in the formula as provided, and are tracked for comparison purposes in the generated .csv containing all final data. 
 
 With your terminal set to whatever directory you have the script in, run it with:
 
 `python3 rank.py`
 
-The script will search for all .CSV files (excluding any set to be ignored) in the "CPUs" folder in the same directory as the script, extract their data, run its calculations, and generate a .CSV file titled "output.csv" in a folder called "Out" in the same directory as the script that contains all supplied data for all CPUs alongside their score, ranked from first to last by score. Any .CSV files not matching the required format will be skipped. All scores will be rounded to two decimal places before being added to the final .CSV table for readability.
+The script will search for all .csv files (excluding any set to be ignored) in the "CPUs" folder in the same directory as the script, extract their data, run its calculations, and generate a .csv file titled "output.csv" in a folder called "Out" in the same directory as the script that contains all supplied data for all CPUs alongside their score, ranked from first to last by score. Any .csv files not matching the required format will be skipped. All scores will be rounded to two decimal places before being added to the final .csv table for readability.
 
 ## Ratings
 This script is provided under the MIT license to allow you to freely use and customize the rating system to your liking. Currently, the formula is:
 
-`score = ((performance + cache_bonus) * efficiency) * scalar`
+`score = ((performance + cache) * efficiency) * scalar`
 
 Performance is calculated from:
 
-`(single_core * weight_single) + (multi_core * weight_multi)`
+`performance = (single_core * weight_single) + (multi_core * weight_multi)`
 
-Cache bonus is calculated from:
+Cache is calculated from three separate operations:
 
-`((l3_cache / cores) ** cache_scaling) * l3_bonus`
+`l2 = ((l2_cache / cores) ** l2_exponent) * l2_bonus * l2_scalar`
 
-Note: while the L3 cache bonus is exponential, it alone is not enough to overpower general CPU performance as shipped. As such, a 7800X3D for example will not dominate rankings purely based off of L3 cache.
+`l3 = ((l3_cache / cores) ** l3_exponent) * l3_bonus`
+
+`cache = (l2 + l3) ** cache_scalar`
+
+Note: while the cache bonus is exponential on multiple fronts, it alone is not enough to overpower general CPU performance as shipped. As such, a 7800X3D for example will not dominate rankings purely based off of L3 cache.
 
 Efficiency is calculated from two separate operations:
 
-`power_cost = ((tdp / cores) + (tdp / threads)) / 2`
+`power_cost = ((power / cores) + (power/ threads)) / 2`
 
 `efficiency = performance / (performance + power_cost * tdp_penalty)`
 
@@ -66,8 +70,12 @@ Constants are adjustable and defined as:
 ```
 weight_single = 0.78 (defines the importance of single core performance)
 weight_multi = 0.22 (defines the importance of multi core performance)
+l2_bonus = 0.5 (adjusts the overall contribution of L2 cache for each CPU)
+l2_exponent = 2.5 (defines how aggressive the L2 cache bonus curve is)
+l2_scalar = 10 (defines how much the L2 cache is scaled when calculating the cache bonus)
 l3_bonus = 0.50 (adjusts the overall contribution of L3 cache for each CPU)
-cache_scaling = 2.5 (defines how aggressive the L3 cache bonus curve is)
-tdp_penalty = 200 (defines how harshly TDP affects a score)
+l3_exponent = 2.5 (defines how aggressive the L3 cache bonus curve is)
+cache_scalar = 1.2 (defines how aggressive the combined L2 and L3 cache bonus curve is)
+tdp_penalty = 175 (defines how harshly power affects a score)
 scalar = 70 (used to produce more readable scores only, and does not affect CPU rankings)
 ```
