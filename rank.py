@@ -3,9 +3,13 @@ import os
 
 weight_single = 0.78
 weight_multi = 0.22
+l2_bonus = 0.5
+l2_exponent = 2.5
+l2_scalar = 10
 l3_bonus = 0.50
-cache_scaling = 2.5
-tdp_penalty = 200
+l3_exponent = 2.5
+cache_scalar = 1.2
+tdp_penalty = 175
 scalar = 70
 
 # List of CSV files to ignore
@@ -18,7 +22,7 @@ out_folder = os.path.join(base_folder, 'Out')
 
 # Get all CSV files in the CPUs folder
 csv_files = [os.path.join(cpus_folder, f) for f in os.listdir(cpus_folder)
-	if f.endswith('.csv') and f not in ignore_files]
+    if f.endswith('.csv') and f not in ignore_files]
 
 all_results_list = []
 
@@ -39,7 +43,7 @@ for file in csv_files:
         l3_cache = float(df.iloc[1,1])
         cores = int(df.iloc[2,0])
         threads = int(df.iloc[2,1])
-        tdp = int(df.iloc[3,0])
+        max_power = int(df.iloc[3,0])
         release_year = int(df.iloc[3,1])
         distro = str(df.iloc[4,0])
         desktop_env = str(df.iloc[4,1])
@@ -55,7 +59,7 @@ for file in csv_files:
             'Threads': threads,
             'L2_Cache': l2_cache,
             'L3_Cache': l3_cache,
-            'TDP': tdp,
+            'Max_Power': max_power,
             'Release_Year': release_year,
             'Single': single_avg,
             'Multi': multi_avg
@@ -75,8 +79,10 @@ else:
     # Calculate scores
     print("Calculating scores...")
     performance = (all_results['Single'] * weight_single) + (all_results['Multi'] * weight_multi)
-    cache = ((all_results['L3_Cache'] / all_results['Cores']) ** cache_scaling) * l3_bonus
-    power_cost = ((all_results['TDP'] / all_results['Cores']) + (all_results['TDP'] / all_results['Threads'])) / 2
+    l2 = ((all_results['L2_Cache'] / all_results['Cores']) ** l2_exponent) * l2_bonus * l2_scalar
+    l3 = ((all_results['L3_Cache'] / all_results['Cores']) ** l3_exponent) * l3_bonus
+    cache = (l2 + l3) ** cache_scalar
+    power_cost = ((all_results['Max_Power'] / all_results['Cores']) + (all_results['Max_Power'] / all_results['Threads'])) / 2
     efficiency = performance / (performance + power_cost * tdp_penalty)
     all_results['Score'] = ((performance + cache) * efficiency) * scalar
 
