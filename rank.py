@@ -1,15 +1,15 @@
 import pandas as pd
 import os
 
-weight_single = 0.78
-weight_multi = 0.22
+weight_single = 0.8
+weight_multi = 0.2
 l2_bonus = 0.5
-l2_exponent = 2.5
+l2_exponent = 2.3
 l2_scalar = 10
-l3_bonus = 0.50
-l3_exponent = 2.5
-cache_scalar = 1.2
-tdp_penalty = 175
+l3_bonus = 0.5
+l3_exponent = 2.3
+cache_scalar = 1.1
+tdp_penalty = 65
 scalar = 70
 
 # List of CSV files to ignore
@@ -32,8 +32,8 @@ for file in csv_files:
 
         # Read CSV
         df = pd.read_csv(file, header=None, keep_default_na=False)
-        if df.shape != (5,2):
-            print(f"File {file} does not have the expected 5x2 format.")
+        if df.shape != (6,2):
+            print(f"File {file} does not have the expected 6x2 format.")
             continue
 
         # Extract values by row and column
@@ -47,6 +47,8 @@ for file in csv_files:
         release_year = int(df.iloc[3,1])
         distro = str(df.iloc[4,0])
         desktop_env = str(df.iloc[4,1])
+        kernel = str(df.iloc[5,0])
+        notes = str(df.iloc[5,1])
         processor_name = os.path.basename(file).replace('.csv', '')
         print(f"Extracted data for CPU {processor_name}")
 
@@ -55,6 +57,7 @@ for file in csv_files:
             'Processor': processor_name,
             'Distribution': distro,
             'Desktop_Environment': desktop_env,
+            'Kernel': kernel,
             'Cores': cores,
             'Threads': threads,
             'L2_Cache': l2_cache,
@@ -62,12 +65,14 @@ for file in csv_files:
             'Max_Power': max_power,
             'Release_Year': release_year,
             'Single': single_avg,
-            'Multi': multi_avg
+            'Multi': multi_avg,
+            'Notes': notes
         })
         print(f"Results appended for file: {file}")
 
     except Exception as e:
         print(f"Error processing file {file}: {e}")
+        print("Did you enter everything correctly?")
         continue
 
 all_results = pd.DataFrame(all_results_list)
@@ -103,7 +108,18 @@ else:
         os.makedirs(out_folder)
         print(f"Created directory: {out_folder}")
 
-    # Save final rankings
+    # Set output file
     output_file = os.path.join(out_folder, 'output.csv')
+
+    # Move notes to correct location
+    print("Moving notes to correct location...")
+    cols = list(final_rankings.columns)
+    cols.remove('Notes')
+    rank_index = cols.index('Rank')
+    cols.insert(rank_index + 1, 'Notes')
+    final_rankings = final_rankings[cols]
+
+    # Save to file
+    print("Saving to file...")
     final_rankings.to_csv(output_file, index=False)
     print(f"Rankings saved to '{output_file}'")
