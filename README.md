@@ -29,11 +29,11 @@ The required 6x2 .CSV layout is as follows:
 | Single core average | Multi core average |
 | L2 cache (MB) | L3 cache (MB) |
 | Cores | Threads |
-| TDP (Watts) | Year of release |
+| Max Power (Watts) | Year of release |
 | Distribution | Desktop environment |
 | Kernel | Notes |
 
-Year of release, distribution, desktop environment, kernel, and (obviously) notes are never used in the formula as provided, and are tracked for comparison purposes in the generated .CSV containing all final data. 
+Year of release, distribution, desktop environment, kernel, and (obviously) notes are never used in the formula as provided, and are tracked for comparison purposes in the generated .CSV containing all final data. Max power is defined as an Intel processor's Maximum Turbo Power, the PPT value of an AMD processor as tested, or if neither are available the TDP of the processor as provided by the manufacturer. 
 
 With your terminal set to whatever directory you have the script in, run it with:
 
